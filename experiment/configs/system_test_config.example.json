@@ -1,0 +1,31 @@
+{
+  "node_api_base": "http://localhost:3001/api",
+  "retrieval_backend_health": "http://localhost:8000/api/health",
+  "evaluation_backend_health": "http://localhost:8001/api/health",
+  "sample_file": "sample_input_file",
+  "report_dir": "report_output_dir",
+  "generation_request": {
+    "models": [
+      {
+        "name": "sample-model",
+        "apiKey": "sk-samplekey1234567890abcdefg"
+      }
+    ],
+    "template": "conventional",
+    "language": "en",
+    "format": "conventional",
+    "mockLLM": true,
+    "mockLatencyMs": 1500,
+    "useCloseAI": false,
+    "closeAiKey": ""
+  },
+  "benchmark": {
+    "sequential_samples": 50,
+    "concurrent_samples": 50,
+    "concurrency": 5,
+    "feedback_under_load_requests": 10,
+    "enable_real_concurrent_benchmark": false,
+    "enable_mock_concurrent_benchmark": true,
+    "mock_llm_latency_ms": 1500
+  }
+}

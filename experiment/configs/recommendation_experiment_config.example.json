@@ -1,0 +1,19 @@
+{
+  "node_service_url": "http://localhost:3001/api/commit-suggestion",
+  "input_file": "sample_input_file",
+  "output_file": "result_output_file",
+  "concurrency": 3,
+  "request": {
+    "models": [
+      {
+        "name": "example-model",
+        "apiKey": "sk-examplekey1234567890abcdefg"
+      }
+    ],
+    "template": "conventional",
+    "language": "en",
+    "format": "conventional",
+    "useCloseAI": false,
+    "closeAiKey": ""
+  }
+}

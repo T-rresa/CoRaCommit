@@ -1,0 +1,34 @@
+{
+  "input_jsonl": "..\\outputs\\plugin_comparison\\hf_smoke_input.jsonl",
+  "output_jsonl": "..\\outputs\\plugin_comparison\\hf_smoke_scored.jsonl",
+  "score_scale": "0_1",
+  "empty_output_strategy": "empty_string",
+  "normalize": {
+    "unicode_nfkc": true,
+    "newline_to_space": true,
+    "collapse_whitespace": true,
+    "strip": true,
+    "lowercase": true
+  },
+  "bleu": {
+    "enabled": true,
+    "tokenize": "13a",
+    "smooth_method": "exp",
+    "smooth_value": null,
+    "lowercase": false,
+    "use_effective_order": true
+  },
+  "rouge": {
+    "enabled": true,
+    "use_stemmer": false
+  },
+  "meteor": {
+    "enabled": true
+  },
+  "cider": {
+    "enabled": true
+  },
+  "bertscore": {
+    "enabled": false
+  }
+}
