@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  retrieval-backend:
+    image: auto-gen-message-backend:latest
+    container_name: auto_gen_msg_retrieval
+    restart: unless-stopped
+    command: ["uvicorn", "app.main_retrieval:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./resource:/app/resource
+    environment:
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  evaluation-backend:
+    image: auto-gen-message-backend:latest
+    container_name: auto_gen_msg_evaluation
+    restart: unless-stopped
+    command: ["uvicorn", "app.main_evaluation:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./resource:/app/resource
+    environment:
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    container_name: auto_gen_msg_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  mysql:
+    image: mysql:8.0
+    container_name: auto_gen_msg_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  node-api:
+    image: auto-gen-message-node:latest
+    container_name: auto_gen_msg_node_api
+    restart: unless-stopped
+    depends_on:
+      retrieval-backend:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_started
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./resource:/app/resource
+    environment:
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - RETRIEVAL_BACKEND_URL=${RETRIEVAL_BACKEND_URL}
+      - EVALUATION_BACKEND_URL=${EVALUATION_BACKEND_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
+      - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
+      - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}
+      - EVAL_CPU_THRESHOLD=${EVAL_CPU_THRESHOLD}
+      - ONLINE_BUSY_TTL_SECONDS=${ONLINE_BUSY_TTL_SECONDS}
+      - MODEL_SCORE_UPDATE_STRATEGY=${MODEL_SCORE_UPDATE_STRATEGY}
+      - MODEL_SCORE_EMA_ALPHA=${MODEL_SCORE_EMA_ALPHA}
+
+  node-worker:
+    image: auto-gen-message-node:latest
+    container_name: auto_gen_msg_node_worker
+    restart: unless-stopped
+    command: ["npm", "run", "start:worker"]
+    depends_on:
+      evaluation-backend:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_started
+    volumes:
+      - ./resource:/app/resource
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - RETRIEVAL_BACKEND_URL=${RETRIEVAL_BACKEND_URL}
+      - EVALUATION_BACKEND_URL=${EVALUATION_BACKEND_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
+      - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
+      - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}
+      - EVAL_CPU_THRESHOLD=${EVAL_CPU_THRESHOLD}
+      - ONLINE_BUSY_TTL_SECONDS=${ONLINE_BUSY_TTL_SECONDS}
+      - MODEL_SCORE_UPDATE_STRATEGY=${MODEL_SCORE_UPDATE_STRATEGY}
+      - MODEL_SCORE_EMA_ALPHA=${MODEL_SCORE_EMA_ALPHA}
+
+volumes:
+  mysql_data:

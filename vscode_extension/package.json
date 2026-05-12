@@ -1,0 +1,152 @@
+{
+  "name": "auto-gen-message-extension",
+  "displayName": "Auto Gen Message",
+  "description": "AI-powered commit message generator and similarity search",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "auto-gen-message.getCommitSuggestion",
+        "title": "Auto Gen: Get Commit Suggestion"
+      },
+      {
+        "command": "auto-gen-message.searchSimilar",
+        "title": "Auto Gen: Search Similar Commits"
+      },
+      {
+        "command": "auto-gen-message.checkHealth",
+        "title": "Auto Gen: Check Service Health"
+      },
+      {
+        "command": "auto-gen-message.selectModel",
+        "title": "Auto Gen: Select AI Model"
+      },
+      {
+        "command": "auto-gen-message.selectTemplate",
+        "title": "Auto Gen: Select Commit Template"
+      },
+      {
+        "command": "auto-gen-message.quickGenerate",
+        "title": "Auto Gen: Generate Commit Message",
+        "icon": "$(zap)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "auto-gen-message.quickGenerate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "auto-gen-message-sidebar",
+          "title": "Auto Gen Message",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "auto-gen-message-sidebar": [
+        {
+          "icon": "$(gear)",
+          "type": "webview",
+          "id": "autoGenMessage.configView",
+          "name": "Configuration"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Auto Gen Message",
+      "properties": {
+        "auto-gen-message.apiUrl": {
+          "type": "string",
+          "default": "http://8.160.177.208:3001/api",
+          "description": "The URL of the remote backend service."
+        },
+        "auto-gen-message.useCustomTemplate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use the custom template defined below."
+        },
+        "auto-gen-message.customTemplate": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "description": "Custom commit message template."
+        },
+        "auto-gen-message.language": {
+          "type": "string",
+          "default": "en",
+          "enum": [
+            "en",
+            "zh-cn",
+            "ja",
+            "ru",
+            "de",
+            "fr",
+            "es",
+            "pt",
+            "it",
+            "ko"
+          ],
+          "description": "Language of the generated commit message."
+        },
+        "auto-gen-message.format": {
+          "type": "string",
+          "default": "conventional",
+          "enum": [
+            "conventional",
+            "karma"
+          ],
+          "description": "The structure/schema of the commit message."
+        },
+        "auto-gen-message.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "The AI model to use for generation (fetched via 'Select AI Model' command)."
+        },
+        "auto-gen-message.template": {
+          "type": "string",
+          "default": "conventional",
+          "description": "Commit message template style (fetched via 'Select Commit Template' command)."
+        },
+        "auto-gen-message.useCloseAI": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use CloseAI proxy for accessing models."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "axios": "^1.6.5"
+  }
+}

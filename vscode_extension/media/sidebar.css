@@ -1,0 +1,31 @@
+/* vscode_extension/media/sidebar.css */
+body { padding: 10px; font-family: var(--vscode-font-family); }
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+select, textarea, input[type="text"] { width: 100%; box-sizing: border-box; padding: 5px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); }
+button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 8px 12px; cursor: pointer; width: 100%; }
+button:hover { background: var(--vscode-button-hoverBackground); }
+.checkbox-group { display: flex; align-items: center; }
+.checkbox-group input { margin-right: 8px; }
+.radio-group { margin-bottom: 15px; }
+.radio-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+.radio-group div { margin-bottom: 5px; }
+.template-hint { font-size: 0.85em; color: var(--vscode-descriptionForeground); margin-bottom: 5px; font-style: italic; }
+.refresh-link { float: right; font-size: 0.9em; cursor: pointer; color: var(--vscode-textLink-foreground); text-decoration: underline; }
+
+.info-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: var(--vscode-descriptionForeground);
+    color: var(--vscode-sideBar-background);
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 4px;
+    cursor: help;
+    vertical-align: middle;
+}
+
