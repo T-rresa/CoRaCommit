@@ -77,3 +77,22 @@ archive/testing/root/run_node_service_experiment.py
 compare_experiment_data/configs/recommendation_experiment_config.example.json
 compare_experiment_data/outputs/
 项目具体实现说明.md
+
+# FusionSearch: keep embedding/export source, ignore data and generated artifacts
+fusion_search/.idea/
+fusion_search/data/
+fusion_search/artifacts/
+fusion_search/results/
+fusion_search/test/
+fusion_search/preprocess/
+fusion_search/retriever/
+fusion_search/jina/
+fusion_search/BM25_index.py
+fusion_search/output.py
+fusion_search/processData.py
+fusion_search/query_get.py
+fusion_search/**/*.db
+fusion_search/**/*.index
+fusion_search/**/*.jsonl
+fusion_search/**/*.npy
+fusion_search/**/*.pkl
