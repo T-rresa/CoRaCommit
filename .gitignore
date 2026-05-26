@@ -74,9 +74,9 @@ resource/embeddings/*.npy
 
 # Experiment / archive files that currently contain real endpoints or keys
 archive/testing/root/run_node_service_experiment.py
-compare_experiment_data/configs/recommendation_experiment_config.example.json
-compare_experiment_data/outputs/
-项目具体实现说明.md
+experiment/configs/recommendation_experiment_config.example.json
+experiment/outputs/
+experiment/inputs/
 
 # FusionSearch: keep embedding/export source, ignore data and generated artifacts
 fusion_search/.idea/
