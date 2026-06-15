@@ -44,15 +44,7 @@ conda activate coracommit_env
 The repository includes `resource_demo/`, a small backend-ready sample. Verify that it can be loaded by the backend resource manager:
 
 ```powershell
-conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
-```
-
-Expected result:
-
-```text
-[INFO] docs.db rows=32
-[INFO] codebert: index_ntotal=32 doc_ids=32 top_commit_id=0
-[DONE] Backend resources are loadable.
+python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
 ```
 
 ### 4. Start the Python backend with demo resources
@@ -63,7 +55,7 @@ PowerShell:
 cd backend
 $env:RESOURCE_PATH="..\resource_demo"
 $env:EMBEDDING_MODEL="codebert"
-conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 cmd.exe:
@@ -72,7 +64,7 @@ cmd.exe:
 cd backend
 set RESOURCE_PATH=..\resource_demo
 set EMBEDDING_MODEL=codebert
-conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 Check:
@@ -186,7 +178,7 @@ python verify_backend_resources.py --resource-dir ../resource --models codebert 
 For a quick resource-only smoke test against the committed demo resources, run this from the repository root:
 
 ```powershell
-conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
+python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
 ```
 
 Expected resource layout:

@@ -44,15 +44,7 @@ conda activate coracommit_env
 仓库内置了小型的 `resource_demo/`，它已经是后端可加载格式。先验证资源能被 backend resource manager 读取：
 
 ```powershell
-conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
-```
-
-期望输出包含：
-
-```text
-[INFO] docs.db rows=32
-[INFO] codebert: index_ntotal=32 doc_ids=32 top_commit_id=0
-[DONE] Backend resources are loadable.
+python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
 ```
 
 ### 4. 启动 Python 后端（demo 资源）
@@ -63,7 +55,7 @@ PowerShell：
 cd backend
 $env:RESOURCE_PATH="..\resource_demo"
 $env:EMBEDDING_MODEL="codebert"
-conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 cmd.exe：
@@ -72,7 +64,7 @@ cmd.exe：
 cd backend
 set RESOURCE_PATH=..\resource_demo
 set EMBEDDING_MODEL=codebert
-conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 检查服务：
@@ -186,7 +178,7 @@ python verify_backend_resources.py --resource-dir ../resource --models codebert 
 如果只想快速验证仓库内置 demo 资源，可在仓库根目录运行：
 
 ```powershell
-conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
+python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
 ```
 
 资源目录结构：
