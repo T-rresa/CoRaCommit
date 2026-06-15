@@ -122,13 +122,7 @@ npm ci
 npm run compile
 ```
 
-Open `vscode_extension/` in VS Code, press `F5`, and set:
-
-```text
-auto-gen-message.apiUrl = http://127.0.0.1:3001/api
-```
-
-The extension's packaged default currently points to a remote API, so this local setting is required for local development.
+Open `vscode_extension/` in VS Code and press `F5`. The extension defaults to the local Node API at `http://localhost:3001/api`.
 
 ## 🧩 Runtime Modes
 

@@ -122,13 +122,7 @@ npm ci
 npm run compile
 ```
 
-在 VS Code 中打开 `vscode_extension/`，按 `F5` 启动扩展宿主，并设置：
-
-```text
-auto-gen-message.apiUrl = http://127.0.0.1:3001/api
-```
-
-扩展包内的默认地址目前指向远端 API，本地开发必须显式设置为上述本地 Node API。
+在 VS Code 中打开 `vscode_extension/`，按 `F5` 启动扩展宿主。扩展默认连接本地 Node API：`http://localhost:3001/api`。
 
 ## 🧩 后端运行模式
 
