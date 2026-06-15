@@ -1,66 +1,201 @@
-# CoRaCMG
+# 🚀 CoRaCommit
 
 English | [中文](README.zh-CN.md)
 
-CoRaCMG is a VS Code extension for automated commit message generation. It uses retrieval-augmented examples from a commit-message corpus and LLM-based generation to produce commit messages from Git diffs.
+CoRaCommit is a VS Code extension for automated commit message generation. It uses retrieval-augmented examples from a commit-message corpus and LLM-based generation to produce commit messages from Git diffs.
 
 The RAG corpus and embedding resources used by this project are built from the ApacheCM dataset.
 
-## Repository Layout
+## ✨ Overview
 
-- `vscode_extension/`: VS Code extension UI and commands.
-- `node_service/`: Node.js API service, orchestration layer, LLM provider integration, feedback queue, and model scoring logic.
-- `backend/`: FastAPI retrieval/evaluation services, embedding models, FAISS retrieval, and SQLite-backed document lookup.
-- `fusion_search/`: scripts for building full diff embeddings from ApacheCM data and exporting backend-ready RAG resources.
-- `experiment/`: experiment configs, scripts, and evaluation workflows.
-- `resource/`: local generated RAG resources. This directory is not committed.
+CoRaCommit consists of three runtime layers:
 
-## Data Source
+- **VS Code extension**: collects Git diffs and displays generated commit messages.
+- **Node API service**: orchestrates retrieval, prompt construction, LLM calls, feedback, and model scoring.
+- **Python backend**: provides embedding, FAISS retrieval, SQLite document lookup, and optional evaluation endpoints.
 
-The retrieval corpus is derived from the ApacheCM dataset. The expected raw input is a JSONL file whose records contain commit metadata and at least:
+The full RAG corpus is built from the **ApacheCM dataset**. The committed `resource_demo/` directory is a small ApacheCM-derived sample for quickstart and smoke testing only.
+
+## ⚡ Quick Start
+
+### 📦 Prerequisites
+
+- Conda or Miniconda
+- Python 3.10.x in the `coracommit_env` environment
+- Node.js 18+ and npm
+- VS Code 1.85+
+
+### 1. Clone
+
+```bash
+git clone https://github.com/T-rresa/CoRaCommit.git
+cd CoRaCommit
+```
+
+### 2. Create `coracommit_env`
+
+```powershell
+conda env create -f fusion_search/environment.yml
+conda activate coracommit_env
+```
+
+### 3. Verify demo RAG resources
+
+The repository includes `resource_demo/`, a small backend-ready sample. Verify that it can be loaded by the backend resource manager:
+
+```powershell
+conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
+```
+
+Expected result:
+
+```text
+[INFO] docs.db rows=32
+[INFO] codebert: index_ntotal=32 doc_ids=32 top_commit_id=0
+[DONE] Backend resources are loadable.
+```
+
+### 4. Start the Python backend with demo resources
+
+PowerShell:
+
+```powershell
+cd backend
+$env:RESOURCE_PATH="..\resource_demo"
+$env:EMBEDDING_MODEL="codebert"
+conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+cmd.exe:
+
+```bash
+cd backend
+set RESOURCE_PATH=..\resource_demo
+set EMBEDDING_MODEL=codebert
+conda run -n coracommit_env python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Check:
+
+```powershell
+curl http://127.0.0.1:8000/api/health
+```
+
+### 5. Start the Node API
+
+Open a second terminal:
+
+```powershell
+cd node_service
+npm ci
+$env:PORT="3001"
+$env:RETRIEVAL_BACKEND_URL="http://127.0.0.1:8000"
+$env:EVALUATION_BACKEND_URL="http://127.0.0.1:8000"
+npm run start
+```
+
+Check:
+
+```powershell
+curl http://127.0.0.1:3001/api/health
+```
+
+Then verify that Node can call the Python retrieval backend:
+
+```powershell
+Invoke-WebRequest `
+  -Uri "http://127.0.0.1:3001/api/similarity-search" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"diff":"diff --git a/a.txt b/a.txt\n+hello"}'
+```
+
+The response should contain a `matches` array.
+
+### 6. Run the VS Code extension
+
+Open a third terminal:
+
+```powershell
+cd vscode_extension
+npm ci
+npm run compile
+```
+
+Open `vscode_extension/` in VS Code, press `F5`, and set:
+
+```text
+auto-gen-message.apiUrl = http://127.0.0.1:3001/api
+```
+
+The extension's packaged default currently points to a remote API, so this local setting is required for local development.
+
+## 🧩 Runtime Modes
+
+### Single Python Backend
+
+Recommended for local development. `app.main` exposes retrieval, embedding, and evaluation routes from one process:
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Use the same URL for both Node settings:
+
+```bash
+set RETRIEVAL_BACKEND_URL=http://127.0.0.1:8000
+set EVALUATION_BACKEND_URL=http://127.0.0.1:8000
+```
+
+### Split Retrieval and Evaluation Backends
+
+Recommended for production-like deployment. Online retrieval and background evaluation run separately:
+
+```bash
+uvicorn app.main_retrieval:app --host 127.0.0.1 --port 8000
+uvicorn app.main_evaluation:app --host 127.0.0.1 --port 8001
+```
+
+Then configure Node with:
+
+```bash
+set RETRIEVAL_BACKEND_URL=http://127.0.0.1:8000
+set EVALUATION_BACKEND_URL=http://127.0.0.1:8001
+```
+
+## 🗂️ Data and RAG Resources
+
+The production retrieval corpus is derived from the ApacheCM dataset. The expected raw input is a JSONL file containing at least:
 
 - `diff`
 - `message`
 - `repo`
 - `commit_sha`
 
-Place the ApacheCM full dataset at:
+Place the full ApacheCM file at:
 
 ```text
 fusion_search/data/raw/apachecm/full.jsonl
 ```
 
-
-## Build RAG Resources
-
-Create the FusionSearch environment:
+Build full RAG resources:
 
 ```bash
 cd fusion_search
-conda env create -f environment.yml
-conda activate diff_search
-```
-
-Build dense embedding indexes:
-
-```bash
+conda activate coracommit_env
 python main.py build-index codebert
 python main.py build-index jina
-```
-
-Export the indexes into the backend `RESOURCE_PATH` format:
-
-```bash
 python main.py export-backend --output-dir ../resource
-```
-
-Verify that the exported resources can be loaded by the backend:
-
-```bash
 python verify_backend_resources.py --resource-dir ../resource --models codebert jina
 ```
 
-The exported backend resource layout is:
+For a quick resource-only smoke test against the committed demo resources, run this from the repository root:
+
+```powershell
+conda run -n coracommit_env python fusion_search/verify_backend_resources.py --resource-dir ../resource_demo --models codebert
+```
+
+Expected resource layout:
 
 ```text
 resource/
@@ -76,120 +211,25 @@ resource/
     jina.index
 ```
 
-The backend `commit_id` is the source row id (`0`, `1`, `2`, ...), and the same ids must be used by `docs.db` and `embeddings/*.doc_ids.npy`.
+The backend `commit_id` is the source row id (`0`, `1`, `2`, ...). The same ids must be used by `docs.db` and `embeddings/*.doc_ids.npy`.
 
-## Run Locally
-
-### 1. Python backend
-
-There are two supported backend modes.
-
-#### Option A: single backend service
-
-Use this for local development or simple end-to-end testing. Retrieval, embedding, and evaluation endpoints are served by one FastAPI process:
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-set RESOURCE_PATH=..\resource
-set EMBEDDING_MODEL=codebert
-uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-When using this mode, point both Node backend URLs to the same service:
-
-```bash
-set RETRIEVAL_BACKEND_URL=http://127.0.0.1:8000
-set EVALUATION_BACKEND_URL=http://127.0.0.1:8000
-```
-
-#### Option B: split retrieval and evaluation services
-
-Use this for production-like deployment. Online retrieval/generation traffic and background evaluation traffic run in separate FastAPI processes:
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-set RESOURCE_PATH=..\resource
-set EMBEDDING_MODEL=codebert
-uvicorn app.main_retrieval:app --host 127.0.0.1 --port 8000
-```
-
-Run the evaluation service in a second terminal:
-
-```bash
-cd backend
-.venv\Scripts\activate
-set RESOURCE_PATH=..\resource
-set EMBEDDING_MODEL=codebert
-uvicorn app.main_evaluation:app --host 127.0.0.1 --port 8001
-```
-
-In this mode, configure Node with separate backend URLs:
-
-```bash
-set RETRIEVAL_BACKEND_URL=http://127.0.0.1:8000
-set EVALUATION_BACKEND_URL=http://127.0.0.1:8001
-```
-
-Health checks:
-
-```bash
-curl http://127.0.0.1:8000/api/health
-curl http://127.0.0.1:8001/api/health
-```
-
-### 2. Node API service
-
-```bash
-cd node_service
-npm install
-set PORT=3001
-set RETRIEVAL_BACKEND_URL=http://127.0.0.1:8000
-set EVALUATION_BACKEND_URL=http://127.0.0.1:8001
-npm run start
-```
-
-If you use feedback evaluation queues, also start Redis and run the worker:
-
-```bash
-npm run start:worker
-```
-
-### 3. VS Code extension
-
-```bash
-cd vscode_extension
-npm install
-npm run compile
-```
-
-Open `vscode_extension/` in VS Code and start the extension host with `F5`. For local development, set:
+## 🧱 Repository Layout
 
 ```text
-auto-gen-message.apiUrl = http://127.0.0.1:3001/api
+backend/          FastAPI retrieval, embedding, and evaluation services
+node_service/     Node API, LLM orchestration, feedback queue, scoring
+vscode_extension/ VS Code extension
+fusion_search/    ApacheCM embedding and resource export scripts
+experiment/       Experiment scripts and configs
+resource_demo/    Small committed quickstart resource
 ```
 
-## Docker Deployment
+## 🐳 Docker Deployment
 
-The deployment compose file starts the retrieval backend, evaluation backend, Node API, Node worker, Redis, and MySQL:
+Generate or provide `resource/` first, then run:
 
 ```bash
 docker compose -f docker-compose.deploy.yml up -d --build
 ```
 
-Before starting Docker, make sure `resource/` has been generated from ApacheCM and contains `docs.db`, `faiss/`, and `embeddings/`.
-
-See `DEPLOY.md` for the fuller deployment workflow and operational notes.
-
-## Useful Checks
-
-```bash
-curl http://127.0.0.1:8000/api/health
-curl http://127.0.0.1:8001/api/health
-curl http://127.0.0.1:3001/api/health
-```
+The compose stack starts retrieval backend, evaluation backend, Node API, Node worker, Redis, and MySQL. See `DEPLOY.md` for deployment details.

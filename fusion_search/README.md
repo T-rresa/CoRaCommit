@@ -8,7 +8,7 @@ This directory keeps the parts of the original FusionSearch experiment that are 
 
 ```bash
 conda env create -f environment.yml
-conda activate diff_search
+conda activate coracommit_env
 ```
 
 Quick import check:

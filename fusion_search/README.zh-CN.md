@@ -9,7 +9,7 @@
 
 ```bash
 conda env create -f environment.yml
-conda activate diff_search
+conda activate coracommit_env
 ```
 
 快速检查依赖：
