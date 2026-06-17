@@ -1,8 +1,8 @@
 # FusionSearch Embedding Export
 
-English | [中文](README.zh-CN.md)
-
 This directory keeps the parts of the original FusionSearch experiment that are needed to build full diff embeddings and export them into the backend RAG resource format.
+
+Ignored locally generated content includes raw data, dense pickle indexes, diagnostics, FAISS files, SQLite databases, NumPy arrays, and retrieval experiment outputs.
 
 ## Environment
 
@@ -47,7 +47,7 @@ Defaults:
 
 ## Export Backend Resources
 
-Convert existing dense pkl indexes into the backend format:
+The backend loads a `RESOURCE_PATH` directory, not the FusionSearch pickle files directly. Convert existing dense pkl indexes into the backend format:
 
 ```bash
 python main.py export-backend --output-dir artifacts/backend_resource
@@ -77,6 +77,12 @@ artifacts/backend_resource/
 The exporter skips empty diffs, NaN/Inf vectors, and zero vectors by default. Add `--fail-on-invalid` to fail instead of skipping invalid rows.
 
 By default, backend `commit_id` values are source row ids (`0`, `1`, `2`, ...).
+
+Use commit SHA as the backend `commit_id`:
+
+```bash
+python main.py export-backend --id-field commit_sha
+```
 
 Export only one model:
 
