@@ -1,7 +1,5 @@
 # FusionSearch Embedding Export
 
-English | [中文](README.zh-CN.md)
-
 This directory keeps the parts of the original FusionSearch experiment that are needed to build full diff embeddings and export them into the backend RAG resource format.
 
 Ignored locally generated content includes raw data, dense pickle indexes, diagnostics, FAISS files, SQLite databases, NumPy arrays, and retrieval experiment outputs.

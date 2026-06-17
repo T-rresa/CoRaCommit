@@ -78,6 +78,10 @@ experiment/outputs/
 experiment/inputs/
 
 experiment/
+!experiment/
+!experiment/inputs/
+experiment/inputs/*
+!experiment/inputs/sample_commit.jsonl
 
 # FusionSearch: keep full-embedding/export source, ignore data and generated artifacts
 fusion_search/.idea/

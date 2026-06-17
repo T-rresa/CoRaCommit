@@ -1,10 +1,8 @@
 # 🚀 CoRaCommit
 
-English | [中文](README.zh-CN.md)
-
 CoRaCommit is a VS Code extension for automated commit message generation. It uses retrieval-augmented examples from a commit-message corpus and LLM-based generation to produce commit messages from Git diffs.
 
-The RAG corpus and embedding resources used by this project are built from the ApacheCM dataset.
+The RAG corpus and embedding resources used by this project are built from the [ApacheCM dataset](https://zenodo.org/records/16926172).
 
 ## ✨ Overview
 
@@ -198,6 +196,14 @@ resource/
 ```
 
 The backend `commit_id` is the source row id (`0`, `1`, `2`, ...). The same ids must be used by `docs.db` and `embeddings/*.doc_ids.npy`.
+
+The experiment branch includes the filtered 945-sample experiment dataset at:
+
+```text
+experiment/inputs/sample_commit.jsonl
+```
+
+Each retained sample has a non-empty `diff` field.
 
 ## 🧱 Repository Layout
 
