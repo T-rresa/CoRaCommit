@@ -65,7 +65,7 @@ def build_parser():
     export_parser.add_argument(
         "--id-field",
         default="row",
-        help="raw_items field to use as doc id. Use 'row' for row number, or e.g. commit_sha.",
+        help="raw_items field to use as backend doc id. Default 'row' uses the source row number; use e.g. commit_sha for commit ids.",
     )
     export_parser.add_argument(
         "--keep-empty-diff",

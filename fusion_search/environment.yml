@@ -1,18 +1,23 @@
-name: diff_search
+name: coracommit_env
 channels:
   - conda-forge
   - pytorch
   - defaults
 dependencies:
-  - python=3.12
-  - numpy
-  - torch
-  - transformers
-  - tqdm
-  - faiss-cpu
-  - jina
-  - sentence-transformers
-  - fire
+  - python=3.10
   - pip
+  - numpy=2.2.6
   - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cpu
+      - torch==2.11.0
+      - faiss-cpu==1.13.2
+      - fastapi==0.127.1
+      - uvicorn==0.23.1
+      - pydantic==2.12.5
+      - scikit-learn==1.7.2
+      - transformers==4.57.3
+      - tqdm==4.67.1
+      - jina==3.34.0
+      - sentence-transformers==5.2.0
+      - fire
       - tiktoken

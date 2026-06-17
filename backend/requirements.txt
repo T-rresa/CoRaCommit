@@ -1,8 +1,10 @@
-﻿fastapi
-uvicorn
-numpy
-faiss-cpu
-transformers
-sentence-transformers
-pydantic
-scikit-learn
+--extra-index-url https://download.pytorch.org/whl/cpu
+fastapi==0.127.1
+uvicorn==0.23.1
+numpy==2.2.6
+torch==2.11.0
+faiss-cpu==1.13.2
+transformers==4.57.3
+sentence-transformers==5.2.0
+pydantic==2.12.5
+scikit-learn==1.7.2

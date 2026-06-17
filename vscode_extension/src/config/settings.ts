@@ -34,7 +34,7 @@ export class Settings {
     }
 
     static get apiUrl(): string {
-        const configured = this.config.get<string>('apiUrl') || 'http://8.160.177.208:3001/api';
+        const configured = this.config.get<string>('apiUrl') || 'http://localhost:3001/api';
         return configured.replace(/\/+$/, '');
     }
 }

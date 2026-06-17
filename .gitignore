@@ -77,7 +77,9 @@ experiment/configs/recommendation_experiment_config.example.json
 experiment/outputs/
 experiment/inputs/
 
-# FusionSearch: keep full-embedding/export source, ignore data and retrieval experiments
+experiment/
+
+# FusionSearch: keep full-embedding/export source, ignore data and generated artifacts
 fusion_search/.idea/
 fusion_search/data/
 fusion_search/artifacts/

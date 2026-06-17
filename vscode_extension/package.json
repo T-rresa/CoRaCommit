@@ -72,7 +72,7 @@
       "properties": {
         "auto-gen-message.apiUrl": {
           "type": "string",
-          "default": "http://8.160.177.208:3001/api",
+          "default": "http://localhost:3001/api",
           "description": "The URL of the remote backend service."
         },
         "auto-gen-message.useCustomTemplate": {
