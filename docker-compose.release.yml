@@ -1,0 +1,178 @@
+# Prebuilt-image deployment for CoRaCommit.
+#
+# Use this file to run the released images without building from source:
+#   cp .env.deploy.example .env
+#   docker compose -f docker-compose.release.yml pull
+#   docker compose -f docker-compose.release.yml up -d
+#
+# For a source build (development / reproduction), use docker-compose.deploy.yml.
+# Override the image tags with BACKEND_IMAGE / NODE_IMAGE in .env.
+
+services:
+  retrieval-backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/t-rresa/coracommit-backend:2.1.0}
+    container_name: auto_gen_msg_retrieval
+    restart: unless-stopped
+    command: ["uvicorn", "app.main_retrieval:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "${RETRIEVAL_PORT:-8000}:8000"
+    volumes:
+      - ./${RESOURCE_DIR:-resource_demo}:/app/resource:ro
+    environment:
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  evaluation-backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/t-rresa/coracommit-backend:2.1.0}
+    container_name: auto_gen_msg_evaluation
+    restart: unless-stopped
+    command: ["uvicorn", "app.main_evaluation:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "${EVALUATION_PORT:-8001}:8001"
+    volumes:
+      - ./${RESOURCE_DIR:-resource_demo}:/app/resource:ro
+    environment:
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    container_name: auto_gen_msg_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:8.0}
+    container_name: auto_gen_msg_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  db-init:
+    image: ${NODE_IMAGE:-ghcr.io/t-rresa/coracommit-node:2.1.0}
+    container_name: auto_gen_msg_db_init
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    command: ["sh", "-c", "npm run init-db && npm run init-model-scores"]
+    restart: "no"
+
+  node-api:
+    image: ${NODE_IMAGE:-ghcr.io/t-rresa/coracommit-node:2.1.0}
+    container_name: auto_gen_msg_node_api
+    restart: unless-stopped
+    depends_on:
+      retrieval-backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "${NODE_API_PORT:-3001}:3001"
+    volumes:
+      - ./${RESOURCE_DIR:-resource_demo}:/app/resource:ro
+    environment:
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - RETRIEVAL_BACKEND_URL=${RETRIEVAL_BACKEND_URL}
+      - EVALUATION_BACKEND_URL=${EVALUATION_BACKEND_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - ALLOW_MOCK_LLM=${ALLOW_MOCK_LLM:-false}
+      - PROMPT_MAX_EXAMPLES_DIFF_CHARS=${PROMPT_MAX_EXAMPLES_DIFF_CHARS:-}
+      - PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS=${PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS:-}
+      - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
+      - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
+      - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}
+      - EVAL_CPU_THRESHOLD=${EVAL_CPU_THRESHOLD}
+      - ONLINE_BUSY_TTL_SECONDS=${ONLINE_BUSY_TTL_SECONDS}
+      - MODEL_SCORE_UPDATE_STRATEGY=${MODEL_SCORE_UPDATE_STRATEGY}
+      - MODEL_SCORE_EMA_ALPHA=${MODEL_SCORE_EMA_ALPHA}
+
+  node-worker:
+    image: ${NODE_IMAGE:-ghcr.io/t-rresa/coracommit-node:2.1.0}
+    container_name: auto_gen_msg_node_worker
+    restart: unless-stopped
+    command: ["npm", "run", "start:worker"]
+    depends_on:
+      evaluation-backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./${RESOURCE_DIR:-resource_demo}:/app/resource:ro
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - RESOURCE_PATH=${RESOURCE_PATH}
+      - RETRIEVAL_BACKEND_URL=${RETRIEVAL_BACKEND_URL}
+      - EVALUATION_BACKEND_URL=${EVALUATION_BACKEND_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - ALLOW_MOCK_LLM=${ALLOW_MOCK_LLM:-false}
+      - PROMPT_MAX_EXAMPLES_DIFF_CHARS=${PROMPT_MAX_EXAMPLES_DIFF_CHARS:-}
+      - PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS=${PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS:-}
+      - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
+      - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
+      - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}
+      - EVAL_CPU_THRESHOLD=${EVAL_CPU_THRESHOLD}
+      - ONLINE_BUSY_TTL_SECONDS=${ONLINE_BUSY_TTL_SECONDS}
+      - MODEL_SCORE_UPDATE_STRATEGY=${MODEL_SCORE_UPDATE_STRATEGY}
+      - MODEL_SCORE_EMA_ALPHA=${MODEL_SCORE_EMA_ALPHA}
+
+volumes:
+  mysql_data:
