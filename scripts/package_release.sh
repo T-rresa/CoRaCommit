@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-"$ROOT/scripts/package_extension.sh"
+bash "$ROOT/scripts/package_extension.sh"
 
 BUNDLE="$ROOT/release/coracommit-2.1.0-bundle.zip"
 rm -f "$BUNDLE"
