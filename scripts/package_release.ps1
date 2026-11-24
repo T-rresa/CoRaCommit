@@ -17,9 +17,7 @@ $Items = @(
     "LICENSE",
     "docs",
     "scripts",
-    "resource_demo",
-    "experiment/README.md",
-    "experiment/requirements.txt"
+    "resource_demo"
 ) | ForEach-Object { Join-Path $Root $_ }
 
 Compress-Archive -Path $Items -DestinationPath $Bundle -Force

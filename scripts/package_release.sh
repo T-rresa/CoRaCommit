@@ -16,8 +16,7 @@ zip -r "$BUNDLE" \
   README.md DEPLOY.md LICENSE \
   docs \
   scripts \
-  resource_demo \
-  experiment/README.md experiment/requirements.txt >/dev/null
+  resource_demo >/dev/null
 
 sha256sum "$ROOT/release/coracommit-2.1.0.vsix" "$BUNDLE" > "$ROOT/release/checksums.txt"
 echo "Release bundle: $BUNDLE"
