@@ -1,15 +1,16 @@
-version: '3.8'
-
 services:
   retrieval-backend:
-    image: auto-gen-message-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: coracommit-backend:2.1.0
     container_name: auto_gen_msg_retrieval
     restart: unless-stopped
     command: ["uvicorn", "app.main_retrieval:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
-      - "8000:8000"
+      - "${RETRIEVAL_PORT:-8000}:8000"
     volumes:
-      - ./resource:/app/resource
+      - ./${RESOURCE_DIR:-resource}:/app/resource
     environment:
       - RESOURCE_PATH=${RESOURCE_PATH}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL}
@@ -21,14 +22,17 @@ services:
       start_period: 60s
 
   evaluation-backend:
-    image: auto-gen-message-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: coracommit-backend:2.1.0
     container_name: auto_gen_msg_evaluation
     restart: unless-stopped
     command: ["uvicorn", "app.main_evaluation:app", "--host", "0.0.0.0", "--port", "8001"]
     ports:
-      - "8001:8001"
+      - "${EVALUATION_PORT:-8001}:8001"
     volumes:
-      - ./resource:/app/resource
+      - ./${RESOURCE_DIR:-resource}:/app/resource
     environment:
       - RESOURCE_PATH=${RESOURCE_PATH}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL}
@@ -40,14 +44,20 @@ services:
       start_period: 60s
 
   redis:
-    image: redis:7-alpine
+    image: ${REDIS_IMAGE:-redis:7-alpine}
     container_name: auto_gen_msg_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   mysql:
-    image: mysql:8.0
+    image: ${MYSQL_IMAGE:-mysql:8.0}
     container_name: auto_gen_msg_mysql
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
@@ -55,25 +65,54 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  db-init:
+    build:
+      context: ./node_service
+      dockerfile: Dockerfile
+    image: coracommit-node:2.1.0
+    container_name: auto_gen_msg_db_init
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    command: ["sh", "-c", "npm run init-db && npm run init-model-scores"]
+    restart: "no"
 
   node-api:
-    image: auto-gen-message-node:latest
+    build:
+      context: ./node_service
+      dockerfile: Dockerfile
+    image: coracommit-node:2.1.0
     container_name: auto_gen_msg_node_api
     restart: unless-stopped
     depends_on:
       retrieval-backend:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       mysql:
-        condition: service_started
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     ports:
-      - "3001:3001"
+      - "${NODE_API_PORT:-3001}:3001"
     volumes:
-      - ./resource:/app/resource
+      - ./${RESOURCE_DIR:-resource}:/app/resource
     environment:
       - PORT=${PORT}
       - NODE_ENV=${NODE_ENV}
@@ -87,6 +126,9 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - ALLOW_MOCK_LLM=${ALLOW_MOCK_LLM:-false}
+      - PROMPT_MAX_EXAMPLES_DIFF_CHARS=${PROMPT_MAX_EXAMPLES_DIFF_CHARS:-}
+      - PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS=${PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS:-}
       - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
       - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
       - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}
@@ -96,7 +138,10 @@ services:
       - MODEL_SCORE_EMA_ALPHA=${MODEL_SCORE_EMA_ALPHA}
 
   node-worker:
-    image: auto-gen-message-node:latest
+    build:
+      context: ./node_service
+      dockerfile: Dockerfile
+    image: coracommit-node:2.1.0
     container_name: auto_gen_msg_node_worker
     restart: unless-stopped
     command: ["npm", "run", "start:worker"]
@@ -104,11 +149,13 @@ services:
       evaluation-backend:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       mysql:
-        condition: service_started
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     volumes:
-      - ./resource:/app/resource
+      - ./${RESOURCE_DIR:-resource}:/app/resource
     environment:
       - NODE_ENV=${NODE_ENV}
       - RESOURCE_PATH=${RESOURCE_PATH}
@@ -121,6 +168,9 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - ALLOW_MOCK_LLM=${ALLOW_MOCK_LLM:-false}
+      - PROMPT_MAX_EXAMPLES_DIFF_CHARS=${PROMPT_MAX_EXAMPLES_DIFF_CHARS:-}
+      - PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS=${PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS:-}
       - EVAL_WORKER_CONCURRENCY=${EVAL_WORKER_CONCURRENCY}
       - EVAL_JOB_DELAY_MS=${EVAL_JOB_DELAY_MS}
       - EVAL_BUSY_CHECK_INTERVAL_MS=${EVAL_BUSY_CHECK_INTERVAL_MS}

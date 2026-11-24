@@ -101,3 +101,7 @@ fusion_search/**/*.index
 fusion_search/**/*.jsonl
 fusion_search/**/*.npy
 fusion_search/**/*.pkl
+
+# Build/release artifacts
+release/
+*.vsix
