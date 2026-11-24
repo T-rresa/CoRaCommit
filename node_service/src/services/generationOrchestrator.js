@@ -16,8 +16,6 @@ class GenerationOrchestrator {
             format,
             templateText,
             manualExamples,
-            useCloseAI,
-            closeAiKey,
             userId,
             requestId,
             mockLLM,
@@ -47,17 +45,11 @@ class GenerationOrchestrator {
                 language
             });
 
-            let finalApiKey = model.apiKey;
-            if (useCloseAI && closeAiKey) {
-                finalApiKey = closeAiKey;
-            }
-
             return {
                 prompt,
                 modelName: model.name,
-                apiKey: finalApiKey,
+                apiKey: model.apiKey,
                 modelFamily,
-                useCloseAI: useCloseAI,
                 mockLLM: !!mockLLM,
                 mockLatencyMs
             };

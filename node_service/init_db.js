@@ -11,8 +11,9 @@ const dbConfig = {
 
 async function initSchema() {
     console.log('Initializing database schema...');
-    
+
     let connection;
+    let exitCode = 0;
     try {
         // First connect without database to create it if not exists
         const sysConfig = { ...dbConfig, database: undefined };
@@ -86,9 +87,10 @@ async function initSchema() {
         
     } catch (error) {
         console.error('❌ Schema initialization failed:', error.message);
+        exitCode = 1;
     } finally {
         if (connection) await connection.end();
-        process.exit();
+        process.exit(exitCode);
     }
 }
 

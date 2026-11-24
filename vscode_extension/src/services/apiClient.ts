@@ -15,8 +15,7 @@ export interface CommitSuggestionRequest {
     format?: string;
     apiKey?: string;
     templateText?: string;
-    useCloseAI?: boolean;
-    closeAiKey?: string;
+    mockLLM?: boolean;
 }
 
 export class ApiClient {

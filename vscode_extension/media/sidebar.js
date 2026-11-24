@@ -9,15 +9,12 @@
     let additionalModelsCheckboxes;
     let templateSelect;
     let languageSelect;
-    let useCloseAICheck;
     let btnSetKeyGpt;
     let btnSetKeyQwen;
     let btnSetKeyDeepseek;
-    let btnSetKeyCloseAi;
     let keyStatusGpt;
     let keyStatusQwen;
     let keyStatusDeepseek;
-    let keyStatusCloseAi;
     let sourceSystemRadio;
     let sourceCustomRadio;
     let systemTemplateGroup;
@@ -58,15 +55,12 @@
         additionalModelsCheckboxes = document.getElementById('additionalModelsCheckboxes');
         templateSelect = document.getElementById('template');
         languageSelect = document.getElementById('language'); // New
-        useCloseAICheck = document.getElementById('useCloseAI'); // New
         btnSetKeyGpt = document.getElementById('btnSetKeyGpt');
         btnSetKeyQwen = document.getElementById('btnSetKeyQwen');
         btnSetKeyDeepseek = document.getElementById('btnSetKeyDeepseek');
-        btnSetKeyCloseAi = document.getElementById('btnSetKeyCloseAi');
         keyStatusGpt = document.getElementById('keyStatusGpt');
         keyStatusQwen = document.getElementById('keyStatusQwen');
         keyStatusDeepseek = document.getElementById('keyStatusDeepseek');
-        keyStatusCloseAi = document.getElementById('keyStatusCloseAi');
         sourceSystemRadio = document.getElementById('sourceSystem');
         sourceCustomRadio = document.getElementById('sourceCustom');
         systemTemplateGroup = document.getElementById('systemTemplateGroup');
@@ -109,7 +103,6 @@
             sourceCustomChecked: sourceCustomRadio ? sourceCustomRadio.checked : false,
             templateValue: templateSelect ? templateSelect.value : '',
             languageValue: languageSelect ? languageSelect.value : '', // New
-            useCloseAIChecked: useCloseAICheck ? useCloseAICheck.checked : false, // New
             customTemplateValue: customTemplateArea ? customTemplateArea.value : '',
             primaryModelValue: primaryModelSelect ? primaryModelSelect.value : '',
             enableMultiModelChecked: enableMultiModelCheck ? enableMultiModelCheck.checked : false,
@@ -167,10 +160,6 @@
 
         if (state.languageValue && languageSelect) {
             languageSelect.value = state.languageValue;
-        }
-
-        if (useCloseAICheck) {
-            useCloseAICheck.checked = state.useCloseAIChecked;
         }
 
         if (enableMultiModelCheck) {
@@ -396,11 +385,9 @@
             saveState();
         });
         if (languageSelect) languageSelect.addEventListener('change', saveState); // New
-        if (useCloseAICheck) useCloseAICheck.addEventListener('change', saveState); // New
         if (btnSetKeyGpt) btnSetKeyGpt.addEventListener('click', () => vscode.postMessage({ type: 'setApiKey', family: 'gpt' }));
         if (btnSetKeyQwen) btnSetKeyQwen.addEventListener('click', () => vscode.postMessage({ type: 'setApiKey', family: 'qwen' }));
         if (btnSetKeyDeepseek) btnSetKeyDeepseek.addEventListener('click', () => vscode.postMessage({ type: 'setApiKey', family: 'deepseek' }));
-        if (btnSetKeyCloseAi) btnSetKeyCloseAi.addEventListener('click', () => vscode.postMessage({ type: 'setCloseAiKey' }));
         if (customTemplateArea) customTemplateArea.addEventListener('input', saveState);
         if (additionalModelsCheckboxes) additionalModelsCheckboxes.addEventListener('change', saveState);
         if (finalMessageArea) finalMessageArea.addEventListener('input', saveState);
@@ -742,8 +729,7 @@
             type: 'generate',
             models: selectedModels,
             examples: isManual ? selectedExamples : null,
-            language: languageSelect ? languageSelect.value : 'en', // Pass language
-            useCloseAI: useCloseAICheck ? useCloseAICheck.checked : false // Pass CloseAI
+            language: languageSelect ? languageSelect.value : 'en' // Pass language
         });
         
         btnGenerate.disabled = true;
@@ -883,18 +869,11 @@
                     }
                 }
 
-                if (useCloseAICheck) {
-                    if (message.forceSync || useCloseAICheck.checked === undefined) {
-                        useCloseAICheck.checked = message.currentSettings.useCloseAI;
-                    }
-                }
-
                 if (message.keyStatus) {
                     const statusText = (v) => v ? 'Configured' : 'Not set';
                     if (keyStatusGpt) keyStatusGpt.innerText = statusText(!!message.keyStatus.gpt);
                     if (keyStatusQwen) keyStatusQwen.innerText = statusText(!!message.keyStatus.qwen);
                     if (keyStatusDeepseek) keyStatusDeepseek.innerText = statusText(!!message.keyStatus.deepseek);
-                    if (keyStatusCloseAi) keyStatusCloseAi.innerText = statusText(!!message.keyStatus.closeAi);
                 }
 
                 // Render Rankings

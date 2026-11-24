@@ -29,16 +29,6 @@ const AVAILABLE_LANGUAGES = [
   { code: "ko", name: "Korean" }
 ];
 
-const CLOSE_AI_CONFIG = {
-  base_urls: {
-    gpt: "https://api.openai-proxy.org/v1",
-    gemini: "https://api.openai-proxy.org/v1", // Example, adjust as needed
-    claude: "https://api.openai-proxy.org/v1", // Example
-    deepseek: "https://api.deepseek.com", // Usually direct or specific proxy
-    qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1" // Usually direct
-  }
-};
-
 const RETRIEVAL_BACKEND_URL = process.env.RETRIEVAL_BACKEND_URL || process.env.BACKEND_URL || "http://localhost:8000";
 const EVALUATION_BACKEND_URL = process.env.EVALUATION_BACKEND_URL || process.env.BACKEND_URL || "http://localhost:8001";
 const EVAL_WORKER_CONCURRENCY = parseInt(process.env.EVAL_WORKER_CONCURRENCY || "1", 10);
@@ -56,7 +46,6 @@ module.exports = {
   AVAILABLE_MODELS,
   AVAILABLE_TEMPLATES,
   AVAILABLE_LANGUAGES,
-  CLOSE_AI_CONFIG,
   RETRIEVAL_BACKEND_URL,
   EVALUATION_BACKEND_URL,
   EVAL_WORKER_CONCURRENCY,

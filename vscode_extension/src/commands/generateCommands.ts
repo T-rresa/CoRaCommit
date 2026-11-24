@@ -76,26 +76,20 @@ export class GenerateCommands {
         await this.runWithProgress("Generating commit message...", async (progress, token) => {
             try {
                 progress.report({ message: 'Checking API keys...' });
+                const mockLLM = data.mockLLM !== undefined ? !!data.mockLLM : Settings.mockLLM;
                 const modelNames: string[] = Array.isArray(data.models) ? data.models : [];
                 const missingFamilies = new Set<string>();
                 const modelsWithKeys = await Promise.all(modelNames.map(async (mName: string) => {
                     const family = this.apiClient.getFamilyForModel(mName);
                     const key = await this.secretStore.getApiKeyByFamily(family);
-                    if (!key) {
+                    if (!key && !mockLLM) {
                         missingFamilies.add(family);
                     }
-                    return { name: mName, apiKey: key };
+                    return { name: mName, apiKey: key || "" };
                 }));
 
                 if (missingFamilies.size > 0) {
                     vscode.window.showErrorMessage(`Missing API Key for: ${Array.from(missingFamilies).join(', ')}.`);
-                    return;
-                }
-
-                const useCloseAI = data.useCloseAI !== undefined ? data.useCloseAI : Settings.useCloseAI;
-                const closeAiKey = await this.secretStore.getCloseAiKey();
-                if (useCloseAI && !closeAiKey) {
-                    vscode.window.showErrorMessage('Missing CloseAI API Key.');
                     return;
                 }
 
@@ -111,8 +105,7 @@ export class GenerateCommands {
                     language: data.language || Settings.language,
                     format: Settings.format,
                     templateText: Settings.useCustomTemplate ? Settings.customTemplate : undefined,
-                    useCloseAI: useCloseAI,
-                    closeAiKey: closeAiKey
+                    mockLLM: mockLLM
                 });
 
                 progress.report({ message: 'Processing results...', increment: 80 });
@@ -198,16 +191,11 @@ export class GenerateCommands {
             try {
                 const currentModel = Settings.model;
                 const family = this.apiClient.getFamilyForModel(currentModel);
+                const mockLLM = Settings.mockLLM;
                 const apiKey = await this.secretStore.getApiKeyByFamily(family);
 
-                if (!apiKey) {
+                if (!apiKey && !mockLLM) {
                     vscode.window.showErrorMessage(`Missing API Key for: ${family}.`);
-                    return;
-                }
-
-                const closeAiKey = await this.secretStore.getCloseAiKey();
-                if (Settings.useCloseAI && !closeAiKey) {
-                    vscode.window.showErrorMessage('Missing CloseAI API Key.');
                     return;
                 }
 
@@ -215,13 +203,12 @@ export class GenerateCommands {
 
                 const response = await this.apiClient.getCommitSuggestion({
                     diff: diffContent,
-                    models: [{ name: currentModel, apiKey: apiKey }],
+                    models: [{ name: currentModel, apiKey: apiKey || "" }],
                     template: Settings.template,
                     language: Settings.language,
                     format: Settings.format,
                     templateText: Settings.useCustomTemplate ? Settings.customTemplate : undefined,
-                    useCloseAI: Settings.useCloseAI,
-                    closeAiKey: closeAiKey
+                    mockLLM: mockLLM
                 });
 
                 const suggestions = response.suggestions;
@@ -279,16 +266,11 @@ export class GenerateCommands {
             try {
                 const currentModel = Settings.model;
                 const family = this.apiClient.getFamilyForModel(currentModel);
+                const mockLLM = Settings.mockLLM;
                 const apiKey = await this.secretStore.getApiKeyByFamily(family);
 
-                if (!apiKey) {
+                if (!apiKey && !mockLLM) {
                     vscode.window.showErrorMessage(`Missing API Key for: ${family}.`);
-                    return;
-                }
-
-                const closeAiKey = await this.secretStore.getCloseAiKey();
-                if (Settings.useCloseAI && !closeAiKey) {
-                    vscode.window.showErrorMessage('Missing CloseAI API Key.');
                     return;
                 }
 
@@ -296,13 +278,12 @@ export class GenerateCommands {
 
                 const response = await this.apiClient.getCommitSuggestion({
                     diff: diffContent,
-                    models: [{ name: currentModel, apiKey: apiKey }],
+                    models: [{ name: currentModel, apiKey: apiKey || "" }],
                     template: Settings.template,
                     language: Settings.language,
                     format: Settings.format,
                     templateText: Settings.useCustomTemplate ? Settings.customTemplate : undefined,
-                    useCloseAI: Settings.useCloseAI,
-                    closeAiKey: closeAiKey
+                    mockLLM: mockLLM
                 });
 
                 const suggestions = response.suggestions;

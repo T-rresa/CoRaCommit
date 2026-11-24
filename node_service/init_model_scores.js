@@ -5,7 +5,8 @@ const INITIAL_SCORE = 0.6;
 
 async function initModelScoresTable() {
     console.log(`Starting initialization for ${AVAILABLE_MODELS.length} models in model_scores...`);
-    
+
+    let exitCode = 0;
     try {
         const connection = await pool.getConnection();
         
@@ -37,8 +38,9 @@ async function initModelScoresTable() {
         }
     } catch (error) {
         console.error('❌ Initialization failed:', error);
+        exitCode = 1;
     } finally {
-        process.exit();
+        process.exit(exitCode);
     }
 }
 

@@ -29,8 +29,8 @@ export class Settings {
         return this.config.get<string>('customTemplate') || "";
     }
 
-    static get useCloseAI(): boolean {
-        return this.config.get<boolean>('useCloseAI') || false;
+    static get mockLLM(): boolean {
+        return this.config.get<boolean>('mockLLM') || false;
     }
 
     static get apiUrl(): string {

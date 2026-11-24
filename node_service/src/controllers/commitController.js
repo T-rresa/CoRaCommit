@@ -20,9 +20,9 @@ exports.suggestCommit = async (req, res) => {
     const requestId = uuidv4();
     try {
         await priorityService.markGenerationStarted();
-        const { 
+        const {
             diff, models, template, language, format, templateText, examples: manualExamples,
-            useCloseAI, closeAiKey, userId, mockLLM, mockLatencyMs
+            userId, mockLLM, mockLatencyMs
         } = req.body;
         const effectiveMockLLM = ALLOW_MOCK_LLM && !!mockLLM;
         
@@ -38,7 +38,6 @@ exports.suggestCommit = async (req, res) => {
                 language,
                 format,
                 use_custom_template: !!templateText,
-                use_close_ai: !!useCloseAI,
                 mock_llm_requested: !!mockLLM,
                 mock_llm_enabled: effectiveMockLLM
             }
@@ -52,8 +51,6 @@ exports.suggestCommit = async (req, res) => {
             format,
             templateText,
             manualExamples,
-            useCloseAI,
-            closeAiKey,
             userId,
             mockLLM: effectiveMockLLM,
             mockLatencyMs,

@@ -141,16 +141,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 keyStatus: {
                     gpt: await this._secretStore.hasApiKeyByFamily('gpt'),
                     qwen: await this._secretStore.hasApiKeyByFamily('qwen'),
-                    deepseek: await this._secretStore.hasApiKeyByFamily('deepseek'),
-                    closeAi: await this._secretStore.hasCloseAiKey()
+                    deepseek: await this._secretStore.hasApiKeyByFamily('deepseek')
                 },
                 currentSettings: {
                     model: Settings.model,
                     template: Settings.template,
-                    language: Settings.language, 
+                    language: Settings.language,
                     useCustomTemplate: Settings.useCustomTemplate,
-                    customTemplate: Settings.customTemplate,
-                    useCloseAI: Settings.useCloseAI // Pass CloseAI setting
+                    customTemplate: Settings.customTemplate
                 }
             });
         } catch (error: any) {
