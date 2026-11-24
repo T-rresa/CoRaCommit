@@ -1,13 +1,33 @@
 // node_service/src/services/promptBuilder.js
 
+function readPositiveLimit(name, fallback) {
+    const raw = process.env[name];
+    if (raw === undefined || raw === null || String(raw).trim() === "") {
+        return fallback;
+    }
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value <= 0) {
+        return fallback;
+    }
+    return value;
+}
+
 class PromptBuilder {
     constructor(modelStrategy, formatStrategy, styleStrategy, language = 'en') {
         this.model = modelStrategy;
         this.format = formatStrategy;
         this.style = styleStrategy;
         this.language = language;
-        this.MAX_EXAMPLES_DIFF_CHARS = 6000;
-        this.MAX_SINGLE_EXAMPLE_DIFF_CHARS = 2000;
+        // Default: no per-example diff limit. Set the environment variables to
+        // a positive character count (e.g. 6000 / 2000) to restore a cap.
+        this.MAX_EXAMPLES_DIFF_CHARS = readPositiveLimit(
+            'PROMPT_MAX_EXAMPLES_DIFF_CHARS',
+            Number.POSITIVE_INFINITY
+        );
+        this.MAX_SINGLE_EXAMPLE_DIFF_CHARS = readPositiveLimit(
+            'PROMPT_MAX_SINGLE_EXAMPLE_DIFF_CHARS',
+            Number.POSITIVE_INFINITY
+        );
     }
 
     build(diff, examples = []) {

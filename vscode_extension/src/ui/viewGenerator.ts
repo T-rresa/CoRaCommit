@@ -101,24 +101,17 @@ export class ViewGenerator {
                 </div>
 
                 <!-- 1. Example Selection (Top Priority) -->
-                <div class="form-group checkbox-group" style="margin-bottom: 5px;">
-                    <input type="checkbox" id="useCloseAI">
-                    <label for="useCloseAI" style="margin-bottom:0">Use CloseAI Proxy</label>
-                </div>
-
                 <div style="margin-bottom: 15px; border: 1px solid var(--vscode-widget-border); padding: 10px;">
                     <div style="font-weight:bold; margin-bottom:6px;">🔐 API Keys</div>
                     <div style="display:flex; gap:6px; flex-wrap: wrap; margin-bottom: 8px;">
                         <button id="btnSetKeyGpt" class="vscode-button" type="button">Set GPT Key</button>
                         <button id="btnSetKeyQwen" class="vscode-button" type="button">Set Qwen Key</button>
                         <button id="btnSetKeyDeepseek" class="vscode-button" type="button">Set Deepseek Key</button>
-                        <button id="btnSetKeyCloseAi" class="vscode-button" type="button">Set CloseAI Key</button>
                     </div>
                     <div style="font-size: 0.85em; opacity: 0.9;">
                         <div>GPT: <span id="keyStatusGpt">Unknown</span></div>
                         <div>Qwen: <span id="keyStatusQwen">Unknown</span></div>
                         <div>Deepseek: <span id="keyStatusDeepseek">Unknown</span></div>
-                        <div>CloseAI: <span id="keyStatusCloseAi">Unknown</span></div>
                     </div>
                 </div>
 

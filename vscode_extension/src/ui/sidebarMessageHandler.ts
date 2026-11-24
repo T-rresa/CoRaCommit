@@ -45,11 +45,6 @@ export class SidebarMessageHandler {
                 await this._refreshCallback(true);
                 break;
             }
-            case 'setCloseAiKey': {
-                await this.setCloseAiKey();
-                await this._refreshCallback(true);
-                break;
-            }
         }
     }
 
@@ -60,7 +55,6 @@ export class SidebarMessageHandler {
             config.update('template', data.template, vscode.ConfigurationTarget.Global),
             config.update('useCustomTemplate', data.useCustomTemplate, vscode.ConfigurationTarget.Global),
             config.update('customTemplate', data.customTemplate, vscode.ConfigurationTarget.Global),
-            config.update('useCloseAI', data.useCloseAI, vscode.ConfigurationTarget.Global),
             config.update('language', data.language, vscode.ConfigurationTarget.Global)
         ]);
         vscode.window.showInformationMessage('Settings saved successfully!');
@@ -82,19 +76,5 @@ export class SidebarMessageHandler {
         }
         await this._secretStore.setApiKeyByFamily(family, apiKey.trim());
         vscode.window.showInformationMessage(`API Key saved (${family}).`);
-    }
-
-    private async setCloseAiKey() {
-        const apiKey = await vscode.window.showInputBox({
-            title: 'Set CloseAI API Key',
-            prompt: 'Paste your CloseAI API key. Leave empty to clear.',
-            password: true,
-            ignoreFocusOut: true
-        });
-        if (apiKey === undefined) {
-            return;
-        }
-        await this._secretStore.setCloseAiKey(apiKey.trim());
-        vscode.window.showInformationMessage('CloseAI API Key saved.');
     }
 }

@@ -1,41 +1,60 @@
 {
-  "name": "auto-gen-message-extension",
-  "displayName": "Auto Gen Message",
-  "description": "AI-powered commit message generator and similarity search",
-  "version": "0.0.1",
+  "name": "coracommit",
+  "displayName": "CoRaCommit",
+  "description": "Retrieval-augmented commit message generation with multi-LLM comparison and feedback",
+  "version": "2.1.0",
+  "publisher": "coracommit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/T-rresa/CoRaCommit"
+  },
+  "license": "MIT",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
+    "SCM Providers",
+    "Machine Learning",
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "commit message",
+    "LLM",
+    "RAG",
+    "git",
+    "VS Code"
+  ],
+  "activationEvents": [
+    "onCommand:auto-gen-message.quickGenerate",
+    "onView:autoGenMessage.configView"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "auto-gen-message.getCommitSuggestion",
-        "title": "Auto Gen: Get Commit Suggestion"
+        "title": "CoRaCommit: Get Commit Suggestion"
       },
       {
         "command": "auto-gen-message.searchSimilar",
-        "title": "Auto Gen: Search Similar Commits"
+        "title": "CoRaCommit: Search Similar Commits"
       },
       {
         "command": "auto-gen-message.checkHealth",
-        "title": "Auto Gen: Check Service Health"
+        "title": "CoRaCommit: Check Service Health"
       },
       {
         "command": "auto-gen-message.selectModel",
-        "title": "Auto Gen: Select AI Model"
+        "title": "CoRaCommit: Select AI Model"
       },
       {
         "command": "auto-gen-message.selectTemplate",
-        "title": "Auto Gen: Select Commit Template"
+        "title": "CoRaCommit: Select Commit Template"
       },
       {
         "command": "auto-gen-message.quickGenerate",
-        "title": "Auto Gen: Generate Commit Message",
+        "title": "CoRaCommit: Generate Commit Message",
         "icon": "$(zap)"
       }
     ],
@@ -52,7 +71,7 @@
       "activitybar": [
         {
           "id": "auto-gen-message-sidebar",
-          "title": "Auto Gen Message",
+          "title": "CoRaCommit",
           "icon": "resources/icon.svg"
         }
       ]
@@ -68,7 +87,7 @@
       ]
     },
     "configuration": {
-      "title": "Auto Gen Message",
+      "title": "CoRaCommit",
       "properties": {
         "auto-gen-message.apiUrl": {
           "type": "string",
@@ -122,10 +141,10 @@
           "default": "conventional",
           "description": "Commit message template style (fetched via 'Select Commit Template' command)."
         },
-        "auto-gen-message.useCloseAI": {
+        "auto-gen-message.mockLLM": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to use CloseAI proxy for accessing models."
+          "description": "Use the backend mock LLM (requires ALLOW_MOCK_LLM=true). Useful for smoke tests without API keys."
         }
       }
     }
@@ -136,7 +155,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "npx --yes @vscode/vsce package"
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",

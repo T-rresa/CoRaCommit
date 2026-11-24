@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node src/server.js",
     "start:api": "node src/server.js",
-    "start:worker": "node src/queue/evaluationWorker.js"
+    "start:worker": "node src/queue/evaluationWorker.js",
+    "init-db": "node init_db.js",
+    "init-model-scores": "node init_model_scores.js"
   },
   "dependencies": {
     "axios": "^1.13.2",

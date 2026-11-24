@@ -145,12 +145,6 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    const legacyCloseAiKey = config.get<string>('closeAiKey');
-    if (legacyCloseAiKey && legacyCloseAiKey.trim()) {
-        await secretStore.setCloseAiKey(legacyCloseAiKey);
-        await config.update('closeAiKey', undefined, vscode.ConfigurationTarget.Global);
-    }
-
     // 3. Register Commands
     const generateCommands = new GenerateCommands(gitProvider, apiClient, sidebarProvider, outputChannel, secretStore);
     generateCommands.register(context);
