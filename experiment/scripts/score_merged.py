@@ -1,9 +1,6 @@
 import argparse
 import json
-import os
 import re
-import subprocess
-import tempfile
 from pathlib import Path
 #compare script for evaluation scores of merged results from different plugins
 
@@ -127,98 +124,29 @@ def compute_rouge_l_rouge_score(hyps, refs, rouge_cfg: dict):
     return scores
 
 
-def _parse_meteor_segment_scores(stdout: str, stderr: str, expected_count: int):
-    seg_re = re.compile(
-        r"^\s*Segment\s+(\d+)\s+score:\s*([0-9]*\.?[0-9]+)\s*$",
-        flags=re.MULTILINE,
-    )
-    float_line_re = re.compile(r"^\s*([0-9]*\.?[0-9]+)\s*$")
+def compute_meteor_nltk(hyps, refs, meteor_cfg: dict, empty_strategy: str):
+    """NLTK METEOR, matching the Table 3 pipeline."""
+    try:
+        from nltk.tokenize import word_tokenize
+        from nltk.translate.meteor_score import single_meteor_score
 
-    combined = (stderr or "") + "\n" + (stdout or "")
+        word_tokenize("warm up punkt")
+    except LookupError as exc:
+        raise RuntimeError(
+            "NLTK data is missing. Run: "
+            "python -m nltk.downloader punkt punkt_tab wordnet omw-1.4"
+        ) from exc
 
-    pairs = seg_re.findall(combined)
-    if pairs:
-        scores = [None] * expected_count
-        for idx_str, score_str in pairs:
-            idx = int(idx_str)
-            if 1 <= idx <= expected_count:
-                scores[idx - 1] = float(score_str)
-        if any(s is None for s in scores):
-            missing = sum(1 for s in scores if s is None)
-            raise RuntimeError(f"METEOR output missing {missing}/{expected_count} segment scores")
-        return scores
-
-    def parse_float_lines(text: str):
-        vals = []
-        for line in (text or "").splitlines():
-            m = float_line_re.match(line)
-            if m:
-                vals.append(float(m.group(1)))
-        return vals
-
-    vals = parse_float_lines(stderr)
-    if len(vals) == expected_count:
-        return vals
-
-    vals = parse_float_lines(combined)
-    if len(vals) >= expected_count:
-        return vals[:expected_count]
-
-    preview = (combined[:1200] + "…") if len(combined) > 1200 else combined
-    raise RuntimeError(f"Failed to parse METEOR segment scores from output. Output preview:\n{preview}")
-
-
-def compute_meteor_official_jar(hyps, refs, meteor_cfg: dict, empty_strategy: str):
-    java_bin = meteor_cfg.get("java", "java")
-    jar_path = meteor_cfg.get("jar_path")
-    if not jar_path:
-        raise ValueError("meteor.jar_path is required when meteor.enabled=true")
-    jar_path = str(Path(jar_path))
-    language = meteor_cfg.get("language", "en")
-    memory = meteor_cfg.get("memory", "2G")
-    use_norm = bool(meteor_cfg.get("normalize", True))
-    use_lower = bool(meteor_cfg.get("lowercase_only", False))
-
-    active_indices = []
-    active_hyps = []
-    active_refs = []
-    for i, (h, r) in enumerate(zip(hyps, refs)):
+    scores = []
+    for h, r in zip(hyps, refs):
         if empty_strategy == "skip" and (h == "" or r == ""):
+            scores.append(None)
             continue
-        active_indices.append(i)
-        active_hyps.append(h)
-        active_refs.append(r)
-
-    if not active_indices:
-        return [None] * len(hyps)
-
-    with tempfile.TemporaryDirectory() as td:
-        td_path = Path(td)
-        hyp_path = td_path / "hyp.txt"
-        ref_path = td_path / "ref.txt"
-        hyp_path.write_text("\n".join(active_hyps) + "\n", encoding="utf-8")
-        ref_path.write_text("\n".join(active_refs) + "\n", encoding="utf-8")
-
-        args = [java_bin, f"-Xmx{memory}", "-jar", jar_path, str(hyp_path), str(ref_path), "-l", language, "-q"]
-        if use_norm:
-            args.append("-norm")
-        elif use_lower:
-            args.append("-lower")
-
-        proc = subprocess.run(args, capture_output=True, text=True, check=False)
-        if proc.returncode != 0:
-            raise RuntimeError(f"METEOR failed (exit={proc.returncode}): {proc.stderr or proc.stdout}")
-
-        stderr = proc.stderr or ""
-        stdout = proc.stdout or ""
-        seg_scores = _parse_meteor_segment_scores(stdout, stderr, len(active_indices))
-
-    out = [None] * len(hyps)
-    for idx, score in zip(active_indices, seg_scores):
-        out[idx] = float(score)
-    if empty_strategy == "empty_string":
-        out = [0.0 if s is None else s for s in out]
-    return out
+        if h == "" or r == "":
+            scores.append(0.0)
+            continue
+        scores.append(float(single_meteor_score(word_tokenize(r), word_tokenize(h))))
+    return scores
 
 
 def compute_cider_pycocoevalcap(hyps, refs, cider_cfg: dict, empty_strategy: str):
@@ -357,9 +285,6 @@ def main():
     cider_cfg = cfg.get("cider", {})
     bertscore_cfg = cfg.get("bertscore", {"enabled": False})
 
-    if meteor_cfg.get("enabled", True) and not meteor_cfg.get("jar_path"):
-        meteor_cfg["enabled"] = False
-
     per_plugin_scores = {}
     for pn in plugin_names:
         hyps = plugin_hyps[pn]
@@ -378,7 +303,7 @@ def main():
             if empty_strategy == "skip":
                 rouge_scores = [None if (h == "" or r == "") else s for h, r, s in zip(hyps, refs, rouge_scores)]
         if meteor_cfg.get("enabled", True):
-            meteor_scores = compute_meteor_official_jar(hyps, refs, meteor_cfg, empty_strategy)
+            meteor_scores = compute_meteor_nltk(hyps, refs, meteor_cfg, empty_strategy)
         if cider_cfg.get("enabled", True):
             cider_scores = compute_cider_pycocoevalcap(hyps, refs, cider_cfg, empty_strategy)
         if bertscore_cfg.get("enabled", False):

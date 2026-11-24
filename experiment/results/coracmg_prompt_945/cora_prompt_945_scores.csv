@@ -1,0 +1,4 @@
+﻿setting,n,BLEU_GLEU,ROUGE_L,METEOR,CIDEr_scorer,CIDEr_eval_print
+new: CoRaCMG prompt + 1 exemplar,945,17.9751,29.6751,28.2834,1.4434,14.4345
+current: CoRaCommit (same ids),945,6.7349,20.9445,21.4061,0.6279,6.2787
+CoRaCMG paper (reference),paper (different data/model),17.42,29.1,28.76,,13.32

@@ -1,0 +1,4 @@
+﻿setting,n,BLEU_GLEU,ROUGE_L,METEOR,CIDEr_scorer,CIDEr_eval_print
+P2-tool 5ex (495),495,8.743,23.1799,20.9882,0.8626,8.6256
+Old CoRaCommit / P3 (same 495),495,7.5733,21.324,21.9438,0.6542,6.5416
+CoRaCMG paper (reference),paper (different data/model),17.42,29.1,28.76,,13.32

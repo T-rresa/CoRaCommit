@@ -1,0 +1,37 @@
+{
+  "test_queries": 497,
+  "pool_size": 110644,
+  "queries_with_5": 497,
+  "shortfall_queries": 0,
+  "p2a_fallback_queries": 2,
+  "p2a_future_examples": 9,
+  "unique_top1_ids": 467,
+  "unique_exemplar_ids": 2218,
+  "top1_max_frequency": [
+    [
+      "103199",
+      10
+    ],
+    [
+      "104136",
+      3
+    ],
+    [
+      "115185",
+      2
+    ],
+    [
+      "116389",
+      2
+    ],
+    [
+      "200919",
+      2
+    ]
+  ],
+  "top1_same_repo": 0,
+  "top1_same_file": 5,
+  "top1_same_issue": 0,
+  "top1_exact_dup": 0,
+  "avg_top1_days_diff": 773.2917505030181
+}

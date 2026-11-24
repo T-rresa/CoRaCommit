@@ -1,0 +1,14 @@
+# Experiment/scoring dependencies (Python 3.10)
+# The retrieval backend dependencies are in fusion_search/environment.yml.
+sacrebleu==2.6.0
+evaluate==0.4.6
+nltk==3.9.4
+rouge_score==0.1.2
+pycocoevalcap==1.2
+numpy==2.2.6
+
+# Optional: BERTScore for supplementary metrics
+# bert-score==0.3.13
+
+# NLTK data for METEOR (run once):
+# python -m nltk.downloader punkt punkt_tab wordnet omw-1.4
