@@ -63,6 +63,7 @@ class FaissRetriever:
                     "commit_id": doc_id,
                     "message": doc.get("message", ""),
                     "diff": diff_text,
+                    "repo": doc.get("repo", ""),
                     "raw_score": item["raw_score"]
                 })
             
